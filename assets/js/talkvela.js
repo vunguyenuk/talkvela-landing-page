@@ -73,16 +73,19 @@
   }
   var flow = document.querySelector('[data-demo="flow"]');
   if (flow) {
-    var S = ['So tomorrow I have an interview.', 'I have been living here for two years.'];
-    var vela = flow.querySelector('[data-vela]'), me = flow.querySelector('[data-me]'), cnt = flow.querySelector('[data-count]');
+    /* one practice run across languages: Spanish -> Japanese -> German */
+    var S = [['Español', 'Mañana tengo una entrevista.'], ['日本語', '明日、面接があります。'], ['Deutsch', 'Ich wohne seit zwei Jahren hier.']];
+    var vela = flow.querySelector('[data-vela]'), me = flow.querySelector('[data-me]'), cnt = flow.querySelector('[data-count]'), lng = flow.querySelector('[data-lang]');
     var segs = flow.querySelectorAll('.tv-p__prog i'), flowLast = '';
+    var toks = function (t) { return /[぀-ヿ一-鿿가-힯]/.test(t) ? t.split('') : t.split(' '); };
     window.tvScrub.flow = function (p) {
-      var k = p < .5 ? 0 : 1, local = cl01((p - k * .5) / .5), ws = S[k].split(' ');
+      var N = S.length, k = Math.min(N - 1, Math.floor(p * N)), local = cl01(p * N - k), ws = toks(S[k][1]);
       var n = Math.round(cl01((local - .12) / .7) * ws.length), key = k + ':' + n;
       segs.forEach(function (s, i) { s.style.width = (i < k ? 100 : i === k ? Math.round(local * 100) : 0) + '%'; });
       if (key === flowLast) return; flowLast = key;
-      vela.textContent = S[k]; cnt.textContent = (k + 1) + ' / 5';
-      me.textContent = ws.slice(0, n).join(' '); flow.classList.toggle('is-done', n === ws.length);
+      vela.textContent = S[k][1]; lng.textContent = S[k][0]; cnt.textContent = (k + 1) + ' / 5';
+      me.textContent = ws.slice(0, n).join(ws === S[k][1].split('') || /[぀-ヿ一-鿿]/.test(S[k][1]) ? '' : ' ');
+      flow.classList.toggle('is-done', n === ws.length);
     };
     if (SCROLLED || reduce) window.tvScrub.flow(reduce ? .45 : 0);
     else { var fgo = function (now) { window.tvScrub.flow((now / 12000) % 1); requestAnimationFrame(fgo); }; requestAnimationFrame(fgo); }
@@ -119,6 +122,22 @@
     };
     if (SCROLLED) window.tvScrub.film(0);
     else { var go = function (now) { window.tvScrub.film((now / 15000) % 1); raf(go); }; raf(go); }
+  }
+
+  /* level scale that follows the language: CEFR -> JLPT -> TOPIK as the last method step is scrolled */
+  var lvl = document.querySelector('[data-lvl]');
+  if (lvl) {
+    var lchips = lvl.querySelectorAll('.tv-lvl__chips span'), lscales = lvl.querySelectorAll('.tv-lvl__scale'), lsys = lvl.querySelector('[data-sys]');
+    var SYS = ['CEFR', 'JLPT', 'TOPIK'], lcur = -1;
+    var showLvl = function (k) {
+      if (k === lcur) return; lcur = k;
+      lchips.forEach(function (c, i) { c.classList.toggle('is-on', i === k); });
+      lscales.forEach(function (c, i) { c.classList.toggle('is-on', i === k); });
+      lsys.textContent = SYS[k];
+    };
+    window.tvLevel = function (p) { showLvl(Math.min(SYS.length - 1, Math.floor(p * SYS.length * .999))); };
+    showLvl(0);
+    if (!SCROLLED && !reduce) { var lk = 0; setInterval(function () { lk = (lk + 1) % SYS.length; showLvl(lk); }, 2600); }
   }
 
   /* footer: rotating typed headline */

@@ -68,6 +68,7 @@
       onUpdate: function (self) {
         var x = self.progress * n, i = Math.min(n - 1, Math.floor(x)), local = i === n - 1 && self.progress >= 1 ? 1 : x - i;
         setActive(i);
+        if (window.tvLevel) window.tvLevel(i < n - 1 ? 0 : local);
         var bar = $('.progress', items[i]); if (bar) bar.style.transform = 'translate(0%, ' + (-100 + local * 100) + '%)';
       } });
     items.forEach(function (it, k) {
